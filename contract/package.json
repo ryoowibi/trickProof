@@ -1,0 +1,22 @@
+{
+  "name": "trickproof-contract",
+  "version": "1.0.0",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "near-sdk-js build src/contract.ts build/trickproof.wasm",
+    "test": "npm run build && ava -- ./build/trickproof.wasm"
+  },
+  "dependencies": {
+    "near-sdk-js": "2.0.0"
+  },
+  "devDependencies": {
+    "ava": "^6.1.3",
+    "near-workspaces": "^5.0.0",
+    "typescript": "^5.4.5"
+  },
+  "ava": {
+    "files": ["sandbox-test/*.ava.js"],
+    "timeout": "120s"
+  }
+}
