@@ -109,9 +109,10 @@ export type LogEntry = {
 export function describeError(e: unknown): { error: string; txHash?: string } {
   const err = e as { message?: string; type?: string; context?: { transactionHash?: string }; transaction_outcome?: { id?: string } };
   const msg = err?.message ?? String(e);
-  const clean =
-    /isn't allowed by the access key|MethodNameMismatch/i.test(msg)
-      ? "blocked by access key: this key can only call `pay`"
-      : /panicked: (?:assertion failed: )?([^\n]+?)(?:\\n|\n|"|$)/.exec(msg)?.[1] ?? msg.split("\n")[0];
+  // Refused by the access key at the RPC: the transaction never reached the chain, so there is no tx to link.
+  if (/isn't allowed by the access key|MethodNameMismatch/i.test(msg)) {
+    return { error: "blocked by access key: this key can only call `pay`" };
+  }
+  const clean = /panicked: (?:assertion failed: )?([^\n]+?)(?:\\n|\n|"|$)/.exec(msg)?.[1] ?? msg.split("\n")[0];
   return { error: clean, txHash: err?.context?.transactionHash ?? err?.transaction_outcome?.id };
 }
