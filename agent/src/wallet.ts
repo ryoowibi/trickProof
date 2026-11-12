@@ -11,6 +11,7 @@ export type ActionResult = {
   ok: boolean;
   status: "approved" | "rejected" | "held" | "failed";
   reason: string;
+  id?: number;
   txHash?: string;
   explorer?: string;
 };
@@ -51,7 +52,7 @@ async function callAsAgent(method: string, args: Record<string, unknown>): Promi
   try {
     const outcome = await account.functionCall({ contractId: ids.contract, methodName: method, args, gas: GAS_PAY });
     const txHash = outcome.transaction_outcome.id;
-    const ret = providers.getTransactionLastResult(outcome) as { ok?: boolean; status?: ActionResult["status"]; reason?: string } | "";
+    const ret = providers.getTransactionLastResult(outcome) as { ok?: boolean; id?: number; status?: ActionResult["status"]; reason?: string } | "";
     const r = typeof ret === "object" && ret ? ret : {};
     return {
       action: method,
@@ -59,6 +60,7 @@ async function callAsAgent(method: string, args: Record<string, unknown>): Promi
       ok: r.ok ?? true,
       status: r.status ?? "approved",
       reason: r.reason ?? "",
+      id: r.id,
       txHash,
       explorer: EXPLORER_TX + txHash,
     };

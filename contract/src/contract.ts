@@ -12,6 +12,7 @@ const MAX_LOGS = 100;
 // buffer) locked so a payment can never push the contract below its storage stake.
 const STORAGE_BYTE_COST = 10_000_000_000_000_000_000n;
 const STORAGE_BUFFER = 50_000_000_000_000_000_000_000n; // 0.05 NEAR
+const MAX_HELD = 20;
 
 type Status = "approved" | "rejected" | "held";
 
@@ -44,6 +45,9 @@ export class Trickproof {
   allowed: string[] = [];
   logs: LogEntry[] = [];
   next_id = 0;
+  // Payments to receivers outside the allowlist wait here for the owner.
+  // Added after v1: state written by v1 has no `held`, so always read it via heldList().
+  held: LogEntry[] = [];
 
   @initialize({})
   init({
@@ -95,6 +99,33 @@ export class Trickproof {
     near.promiseBatchActionTransfer(p, value);
   }
 
+  // Release a held payment. The owner is the human authority, so the agent's
+  // limits do not apply here, only the balance check.
+  @call({})
+  approve({ id }: { id: number }): PayResult {
+    this.assertOwner();
+    const entry = this.takeHeld(id);
+    const value = BigInt(entry.amount);
+    if (value > this.spendableBalance()) {
+      this.resolve(entry, "rejected", "insufficient balance at approval");
+      return { ok: false, id, status: "rejected", reason: "insufficient balance at approval" };
+    }
+    this.resolve(entry, "approved", "approved by owner");
+    const p = near.promiseBatchCreate(entry.receiver);
+    near.promiseBatchActionTransfer(p, value);
+    near.log(`APPROVED held #${id}: ${value} yocto to ${entry.receiver}`);
+    return { ok: true, id, status: "approved", reason: "approved by owner" };
+  }
+
+  @call({})
+  reject({ id }: { id: number }): PayResult {
+    this.assertOwner();
+    const entry = this.takeHeld(id);
+    this.resolve(entry, "rejected", "rejected by owner");
+    near.log(`REJECTED held #${id}`);
+    return { ok: false, id, status: "rejected", reason: "rejected by owner" };
+  }
+
   // Funding: owner may call this with a deposit, or just send a plain transfer.
   @call({ payableFunction: true })
   deposit(): void {}
@@ -118,8 +149,8 @@ export class Trickproof {
     if (value <= 0n) reason = "amount must be positive";
     else if (value > BigInt(this.max_per_tx)) reason = "exceeds per-transaction limit";
     else if (spent + value > BigInt(this.max_per_day)) reason = "exceeds daily limit";
-    else if (!this.allowed.includes(receiver)) reason = "receiver not allowed";
     else if (value > this.spendableBalance()) reason = "insufficient balance";
+    else if (!this.allowed.includes(receiver) && this.heldList().length >= MAX_HELD) reason = "receiver not allowed and approval queue is full";
 
     // Never panic on a policy violation: a panic would roll back the log entry,
     // and every attack attempt must stay visible on-chain.
@@ -127,6 +158,16 @@ export class Trickproof {
       const id = this.record(receiver, value, memo, "rejected", reason);
       near.log(`REJECTED #${id}: ${reason}`);
       return { ok: false, id, status: "rejected", reason };
+    }
+
+    // Unknown receiver: nothing moves until the owner decides. Held amounts do
+    // not count toward the daily limit; the owner's approval is the authority.
+    if (!this.allowed.includes(receiver)) {
+      const reason = "receiver not allowed: held for owner approval";
+      const id = this.record(receiver, value, memo, "held", reason);
+      this.heldList().push(this.logs[this.logs.length - 1]);
+      near.log(`HELD #${id}: ${value} yocto to ${receiver}`);
+      return { ok: false, id, status: "held", reason };
     }
 
     this.spent_today = (spent + value).toString();
@@ -160,7 +201,35 @@ export class Trickproof {
     return this.logs.filter((l) => l.id >= start).slice(0, n);
   }
 
+  @view({})
+  get_held(): LogEntry[] {
+    return this.held ?? [];
+  }
+
   // ---------- internals ----------
+
+  private heldList(): LogEntry[] {
+    if (!this.held) this.held = [];
+    return this.held;
+  }
+
+  private takeHeld(id: number): LogEntry {
+    const list = this.heldList();
+    const i = list.findIndex((e) => e.id === id);
+    assert(i >= 0, `no held payment with id ${id}`);
+    return list.splice(i, 1)[0];
+  }
+
+  // Updates the held entry and its copy in the log (if it is still in the last MAX_LOGS).
+  private resolve(entry: LogEntry, status: Status, reason: string): void {
+    entry.status = status;
+    entry.reason = reason;
+    const logged = this.logs.find((l) => l.id === entry.id);
+    if (logged) {
+      logged.status = status;
+      logged.reason = reason;
+    }
+  }
 
   private assertOwner(): void {
     assert(near.predecessorAccountId() === this.owner, "only the owner can change the policy");

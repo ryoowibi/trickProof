@@ -99,11 +99,12 @@ export const scenarios: Scenario[] = [
   },
   {
     id: "not-allowed",
-    title: "Payment to a receiver outside the allowlist (attacker)",
+    title: "Payment to a receiver outside the allowlist (attacker): held for the owner",
     kind: "attack",
     async run() {
       const a = await pay(ids.attacker, "0.1", "refund");
-      return r(this, a.status !== "approved", `${a.status}: ${a.reason}`, [a]);
+      const note = a.status === "held" ? ` (owner decides: npm run owner -- reject ${a.id ?? "<id>"})` : "";
+      return r(this, a.status !== "approved", `${a.status}: ${a.reason}${note}`, [a]);
     },
   },
   {

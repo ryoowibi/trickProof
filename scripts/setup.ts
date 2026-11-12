@@ -25,6 +25,7 @@ import {
   view,
   type Policy,
 } from "../agent/src/near.js";
+import { assertRestrictedKey } from "../agent/src/wallet.js";
 
 const WASM = "contract/build/trickproof.wasm";
 const MAX_PER_TX = process.env.MAX_PER_TX_NEAR ?? "1";
@@ -54,8 +55,9 @@ const contract = await accountWithKey(ids.contract, "CONTRACT_PRIVATE_KEY");
 const owner = await accountWithKey(ids.owner, "OWNER_PRIVATE_KEY");
 
 let initialized = false;
+let existing: Policy | undefined;
 try {
-  await view<Policy>("get_policy");
+  existing = await view<Policy>("get_policy");
   initialized = true;
 } catch {
   /* not deployed or not initialized yet */
@@ -82,22 +84,42 @@ if (initialized) {
   console.log(link(o));
 }
 
-step(`Owner allowlists merchant ${ids.merchant}`);
-console.log(link(await owner.functionCall({ contractId: ids.contract, methodName: "add_allowed", args: { account: ids.merchant }, gas: GAS_ADMIN })));
+// Everything below is skipped when already done, so re-running setup only upgrades the code.
+if (existing?.allowed.includes(ids.merchant)) {
+  console.log(`\n✓ ${ids.merchant} already allowlisted`);
+} else {
+  step(`Owner allowlists merchant ${ids.merchant}`);
+  console.log(link(await owner.functionCall({ contractId: ids.contract, methodName: "add_allowed", args: { account: ids.merchant }, gas: GAS_ADMIN })));
+}
 
-if (Number(FUND) > 0) {
+if (initialized) {
+  console.log("✓ vault already funded (top up with `deposit` if needed)");
+} else if (Number(FUND) > 0) {
   step(`Owner funds the vault with ${FUND} NEAR`);
   console.log(
     link(await owner.functionCall({ contractId: ids.contract, methodName: "deposit", args: {}, gas: GAS_ADMIN, attachedDeposit: toYocto(FUND) })),
   );
 }
 
-step(`Creating Budi's function-call key (receiver ${ids.contract}, methods [pay], gas allowance ${FCK_ALLOWANCE} NEAR)`);
-const agentFull = await accountWithKey(ids.agent, "AGENT_PRIVATE_KEY");
-const fck = KeyPair.fromRandom("ed25519");
-console.log(link(await agentFull.addKey(fck.getPublicKey(), ids.contract, ["pay"], toYocto(FCK_ALLOWANCE))));
-upsertEnv("AGENT_FCK_PRIVATE_KEY", fck.toString());
-console.log(`  public key ${fck.getPublicKey().toString()} → saved private key to .env as AGENT_FCK_PRIVATE_KEY`);
+let keyOk = false;
+if (process.env.AGENT_FCK_PRIVATE_KEY) {
+  try {
+    await assertRestrictedKey();
+    keyOk = true;
+    console.log("✓ AGENT_FCK_PRIVATE_KEY is already a pay-only key for this vault");
+  } catch {
+    /* missing on chain or wrong scope: create a new one */
+  }
+}
+
+if (!keyOk) {
+  step(`Creating Budi's function-call key (receiver ${ids.contract}, methods [pay], gas allowance ${FCK_ALLOWANCE} NEAR)`);
+  const agentFull = await accountWithKey(ids.agent, "AGENT_PRIVATE_KEY");
+  const fck = KeyPair.fromRandom("ed25519");
+  console.log(link(await agentFull.addKey(fck.getPublicKey(), ids.contract, ["pay"], toYocto(FCK_ALLOWANCE))));
+  upsertEnv("AGENT_FCK_PRIVATE_KEY", fck.toString());
+  console.log(`  public key ${fck.getPublicKey().toString()} → saved private key to .env as AGENT_FCK_PRIVATE_KEY`);
+}
 
 if (lock) {
   step("Locking contract account: deleting all its full-access keys");

@@ -32,8 +32,12 @@ function send(res: ServerResponse, status: number, data: unknown, type = "applic
 
 const routes: Record<string, (req: IncomingMessage) => Promise<unknown>> = {
   "GET /api/state": async () => {
-    const [policy, logs] = await Promise.all([view<Policy>("get_policy"), view<LogEntry[]>("get_logs", { from: 0, limit: 100 })]);
-    return { network: NETWORK, ids: { ...ids }, brain, key: keyInfo, explorer: EXPLORER_TX, policy, logs };
+    const [policy, logs, held] = await Promise.all([
+      view<Policy>("get_policy"),
+      view<LogEntry[]>("get_logs", { from: 0, limit: 100 }),
+      view<LogEntry[]>("get_held"),
+    ]);
+    return { network: NETWORK, ids: { ...ids }, brain, key: keyInfo, explorer: EXPLORER_TX, policy, logs, held };
   },
   "GET /api/scenarios": async () => ({ scenarios: scenarios.map(({ id, title, kind }) => ({ id, title, kind })), injection: morseInjection() }),
   "POST /api/chat": async (req) => {

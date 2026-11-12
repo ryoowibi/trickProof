@@ -12,6 +12,7 @@
     "agent": "tsx agent/src/server.ts",
     "dashboard": "tsx agent/src/server.ts",
     "attack-suite": "tsx scripts/attack-suite.ts",
+    "owner": "tsx scripts/owner.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

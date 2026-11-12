@@ -4,6 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Trickproof</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjNThhNmZmIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzNmYjk1MCIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSIxMTIiIGZpbGw9IiMwZTExMTYiLz4KICA8cGF0aCBkPSJNMjU2IDY0IEw0MDggMTIwIFYyMzYgQzQwOCAzNDIgMzQyIDQxOCAyNTYgNDU0IEMxNzAgNDE4IDEwNCAzNDIgMTA0IDIzNiBWMTIwIFoiIGZpbGw9InVybCgjZykiLz4KICA8cGF0aCBkPSJNMjU2IDEwNCBMMzcyIDE0NyBWMjM4IEMzNzIgMzIyIDMyMiAzODIgMjU2IDQxMiBDMTkwIDM4MiAxNDAgMzIyIDE0MCAyMzggVjE0NyBaIiBmaWxsPSJub25lIiBzdHJva2U9IiMwZTExMTYiIHN0cm9rZS1vcGFjaXR5PSIuMzUiIHN0cm9rZS13aWR0aD0iMTAiLz4KICA8Y2lyY2xlIGN4PSIyNTYiIGN5PSIyMjYiIHI9IjQ0IiBmaWxsPSIjMGUxMTE2Ii8+CiAgPHBhdGggZD0iTTIzNCAyNDggTDIxOCAzNDAgSDI5NCBMMjc4IDI0OCBaIiBmaWxsPSIjMGUxMTE2Ii8+Cjwvc3ZnPgo=" />
 <style>
   :root {
     --bg: #0e1116; --panel: #161b22; --line: #2a313c; --text: #e6edf3; --muted: #8b949e;
@@ -75,6 +76,15 @@
   </section>
 
   <section class="wide">
+    <h2>Waiting for owner approval ⏸</h2>
+    <div id="held"></div>
+    <p style="color:var(--muted);font-size:12px;margin:8px 0 0">
+      Payments to receivers outside the allowlist are held, not sent. Only the owner can release them, from a separate process:
+      <code>npm run owner -- approve &lt;id&gt;</code> or <code>npm run owner -- reject &lt;id&gt;</code>. This server never loads the owner key.
+    </p>
+  </section>
+
+  <section class="wide">
     <h2>Attack simulation</h2>
     <div id="scenarios"></div>
   </section>
@@ -122,6 +132,11 @@ async function refresh() {
     ["Allowlist", p.allowed.map((a) => `<code>${esc(a)}</code>`).join(", ") || "—"],
     ["Vault balance", near(p.balance) + " NEAR"],
   ].map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("");
+  $("held").innerHTML = state.held.length
+    ? `<div class="scroll"><table><thead><tr><th>#</th><th>receiver</th><th>amount</th><th>memo</th><th>owner command</th></tr></thead><tbody>` +
+      state.held.map((h) => `<tr><td>${h.id}</td><td><code>${esc(h.receiver)}</code></td><td>${near(h.amount)}</td><td>${esc(h.memo)}</td>
+        <td><code>npm run owner -- approve ${h.id}</code> / <code>reject ${h.id}</code></td></tr>`).join("") + `</tbody></table></div>`
+    : `<p style="color:var(--muted);margin:0">Nothing waiting.</p>`;
   $("logs").innerHTML = state.logs.slice().reverse().map((l) => `<tr>
       <td>${l.id}</td>
       <td>${new Date(Number(BigInt(l.timestamp) / 1000000n)).toLocaleTimeString()}</td>
