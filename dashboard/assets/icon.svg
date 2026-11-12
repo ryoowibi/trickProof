@@ -7,7 +7,12 @@
   </defs>
   <rect width="512" height="512" rx="112" fill="#0e1116"/>
   <path d="M256 64 L408 120 V236 C408 342 342 418 256 454 C170 418 104 342 104 236 V120 Z" fill="url(#g)"/>
-  <path d="M256 104 L372 147 V238 C372 322 322 382 256 412 C190 382 140 322 140 238 V147 Z" fill="none" stroke="#0e1116" stroke-opacity=".35" stroke-width="10"/>
-  <circle cx="256" cy="226" r="44" fill="#0e1116"/>
-  <path d="M234 248 L218 340 H294 L278 248 Z" fill="#0e1116"/>
+  <line x1="256" y1="186" x2="256" y2="150" stroke="#0e1116" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="256" cy="140" r="16" fill="#0e1116"/>
+  <rect x="166" y="182" width="180" height="140" rx="40" fill="#0e1116"/>
+  <rect x="148" y="232" width="20" height="44" rx="8" fill="#0e1116"/>
+  <rect x="344" y="232" width="20" height="44" rx="8" fill="#0e1116"/>
+  <circle cx="218" cy="242" r="20" fill="#58a6ff"/>
+  <circle cx="294" cy="242" r="20" fill="#3fb950"/>
+  <rect x="226" y="286" width="60" height="10" rx="5" fill="#8b949e"/>
 </svg>

@@ -123,6 +123,7 @@ Scenario 4 spends up to the remaining daily budget for real (to the merchant), s
 - Contract: [near-sdk-js](https://github.com/near/near-sdk-js) 2.0.0; tests: [near-workspaces](https://github.com/near/near-workspaces-js) 5, [ava](https://github.com/avajs/ava).
 - Agent / scripts: [near-api-js](https://github.com/near/near-api-js) 5.1.1, [openai](https://github.com/openai/openai-node) (client for the NEAR AI Cloud OpenAI-compatible API), [dotenv](https://github.com/motdotla/dotenv), [tsx](https://github.com/privatenumber/tsx), TypeScript.
 - Dashboard: plain HTML/CSS/JS, no framework, served by the agent's Node `http` server.
+- Landing page (`landing/index.html`): a single static file, no build step; plain WebGL for the dithered background, fonts from Google Fonts (Geist). Open it directly or host it on any static host.
 - No create-near-app template was used; the project layout follows near-sdk-js conventions.
 - Large parts of the code and this README were written with AI assistance (Claude Code) and reviewed by the author.
 
