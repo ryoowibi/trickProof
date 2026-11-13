@@ -9,3 +9,7 @@ contract/build/
 results/
 submission*.json
 .DS_Store
+
+# video build output
+video/**/renders/
+video/**/.hyperframes/
