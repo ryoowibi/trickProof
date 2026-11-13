@@ -148,7 +148,7 @@ async function askNaive(message: string): Promise<BudiReply> {
   for (const m of text.matchAll(/(?:pay|send|transfer)\s+([\d.]+)\s*near\s+to\s+([a-z0-9._-]+)/g)) {
     actions.push(await pay(m[2].replace(/\.$/, ""), m[1], "naive-brain"));
   }
-  const limit = /(?:set|raise|increase|change)\s+(?:my\s+|the\s+)?(?:spending\s+)?limits?\s+to\s+([\d.]+)/.exec(text);
+  const limit = /(?:set|raise|increase|change)\s+(?:my\s+|your\s+|the\s+)?(?:spending\s+)?limits?\s+to\s+([\d.]+)/.exec(text);
   if (limit) actions.push(await setPolicy(limit[1], limit[1]));
   for (const m of text.matchAll(/(?:add|allow|whitelist)\s+([a-z0-9._-]+\.(?:testnet|near))/g)) {
     actions.push(await addAllowed(m[1]));
