@@ -354,6 +354,45 @@
   .lc p code { background: rgba(0,0,0,.08); padding: 1px 6px; border-radius: 5px; }
   @media (max-width: 600px) { .lc { height: 400px; padding: 22px; } .lc .art { width: 84px; right: 20px; top: 64px; } .lc p { font-size: 14.5px; } }
 
+  /* ---------- live from testnet ---------- */
+  .lv { margin-top: 40px; border-radius: 22px; border: 1px solid var(--line); background: var(--card); overflow: hidden; }
+  .lv-top { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between; padding: 18px 22px; border-bottom: 1px solid var(--line); }
+  .lv-id { display: flex; gap: 12px; align-items: center; }
+  .lv-id img { width: 38px; height: 38px; }
+  .lv-id b { display: block; font: 600 15px var(--mono); }
+  .lv-id span { font-size: 12.5px; color: var(--dim); }
+  .lv-act { display: flex; gap: 8px; align-items: center; }
+  .lv-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dim); margin-right: 4px; }
+  .lv-dot.ok { background: var(--mint); box-shadow: 0 0 10px var(--mint); animation: lvp 2s ease-in-out infinite; }
+  .lv-dot.err { background: var(--red); }
+  @keyframes lvp { 50% { opacity: .35; } }
+  .lv-stats { display: grid; grid-template-columns: repeat(2, 1fr); border-bottom: 1px solid var(--line); }
+  @media (min-width: 860px) { .lv-stats { grid-template-columns: repeat(5, 1fr); } }
+  .lv-stats > div { position: relative; padding: 18px 22px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-bottom: -1px; }
+  .lv-stats span { display: block; font: 500 11px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--dim); }
+  .lv-stats b { display: block; margin-top: 6px; font-size: 24px; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  .lv-bar { display: block; margin-top: 10px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.07); overflow: hidden; }
+  .lv-bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--mint), var(--cyan)); transition: width 1s var(--ease); }
+  .lv-meta { display: flex; flex-wrap: wrap; gap: 8px 26px; padding: 14px 22px; border-bottom: 1px solid var(--line); font-size: 13px; color: var(--dim); }
+  .lv-meta b { color: var(--ink-2); font: 500 12.5px var(--mono); margin-left: 6px; }
+  .lv-log { max-height: 380px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #333 transparent; }
+  .lv-row { display: grid; grid-template-columns: 54px 104px 1fr auto; gap: 14px; align-items: center; padding: 12px 22px; border-bottom: 1px solid #1f2125; font-size: 13.5px; animation: up .45s var(--ease) both; }
+  .lv-row:last-child { border-bottom: 0; }
+  .lv-row .n { font: 12px var(--mono); color: var(--dim); }
+  .lv-row .p { justify-self: start; padding: 3px 9px; border-radius: 999px; font: 600 10.5px var(--mono); letter-spacing: .06em; border: 1px solid; }
+  .lv-row .p.approved { color: var(--mint); border-color: rgba(60,242,176,.35); background: rgba(60,242,176,.07); }
+  .lv-row .p.rejected { color: var(--red); border-color: rgba(255,93,108,.35); background: rgba(255,93,108,.07); }
+  .lv-row .p.held { color: var(--amber); border-color: rgba(255,196,87,.35); background: rgba(255,196,87,.07); }
+  .lv-row .d b { font-weight: 500; }
+  .lv-row .d small { display: block; color: var(--dim); font-size: 12px; overflow-wrap: anywhere; }
+  .lv-row .t { font: 12px var(--mono); color: var(--dim); white-space: nowrap; }
+  @media (max-width: 640px) { .lv-row { grid-template-columns: 40px 1fr; } .lv-row .p { grid-column: 2; } .lv-row .t { grid-column: 2; } }
+  .lv-empty { padding: 34px 22px; color: var(--dim); font-size: 14px; }
+  .lv-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 14px 22px; border-top: 1px solid var(--line); background: var(--well); font-size: 12.5px; color: var(--dim); }
+  .lv-foot code { flex: 1; min-width: 0; overflow-x: auto; white-space: nowrap; color: var(--ink-2); font-size: 12px; }
+  .lv-copy { padding: 4px 10px; border-radius: 7px; border: 1px solid var(--line-2); background: transparent; color: var(--muted); font: 11.5px var(--mono); cursor: pointer; }
+  .lv-copy:hover { color: var(--ink); }
+
   /* ---------- attack files ---------- */
   .files { display: grid; gap: 16px; margin-top: 34px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
   .f { border-radius: 16px; border: 1px solid var(--line); background: var(--card); overflow: hidden; transition: transform .35s var(--ease), border-color .3s, opacity .9s var(--ease); }
@@ -528,6 +567,7 @@
       <a href="#how">How it works</a>
       <a href="#does">Features</a>
       <a href="#layers">Layers</a>
+      <a href="#live">Live</a>
       <a href="#files">Attack files</a>
       <a href="#questions">Questions</a>
       <i class="ind" aria-hidden="true"></i>
@@ -772,10 +812,39 @@
     </div>
   </section>
 
+  <!-- ============ LIVE FROM TESTNET (read-only RPC, no wallet) ============ -->
+  <section id="live">
+    <div class="wrap">
+      <div class="hud rv" data-scramble><b>05</b> Live from testnet</div>
+      <h2 class="h2 rv">Not a mockup. <span class="serif grad">Read it yourself.</span></h2>
+      <p class="lead rv d1">The console preview at the top is a simulation. This panel isn't: your browser reads the vault's state straight from NEAR testnet with a read-only view call. No wallet, no key, no server of ours in between.</p>
+      <div class="lv rv clip">
+        <div class="lv-top">
+          <div class="lv-id"><img src="assets/vault.svg" alt="" /><div><b>vault-arr.testnet</b><span id="lv-sub">connecting to NEAR testnet…</span></div></div>
+          <div class="lv-act"><span class="lv-dot" id="lv-dot"></span><button class="btn dark sm" id="lv-refresh" type="button">Refresh</button><a class="btn dark sm" href="https://testnet.nearblocks.io/address/vault-arr.testnet" target="_blank" rel="noopener">NearBlocks ↗</a></div>
+        </div>
+        <div class="lv-stats">
+          <div><span>Vault balance</span><b id="lv-bal">—</b></div>
+          <div><span>Max per tx</span><b id="lv-tx">—</b></div>
+          <div><span>Max per day</span><b id="lv-day">—</b></div>
+          <div><span>Spent today</span><b id="lv-spent">—</b><i class="lv-bar"><i id="lv-barf"></i></i></div>
+          <div><span>Held for owner</span><b id="lv-held">—</b></div>
+        </div>
+        <div class="lv-meta"><span>Agent <b id="lv-agent">—</b></span><span>Owner <b id="lv-owner">—</b></span><span>Allowlist <b id="lv-allow">—</b></span></div>
+        <div class="lv-log" id="lv-log"><div class="lv-empty">Loading the on-chain log…</div></div>
+        <div class="lv-foot">
+          <span>Same data from a terminal:</span>
+          <code id="lv-cmd">near contract call-function as-read-only vault-arr.testnet get_logs json-args '{}' network-config testnet now</code>
+          <button class="lv-copy" id="lv-copy" type="button">copy</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ============ ATTACK FILES ============ -->
   <section id="files">
     <div class="wrap">
-      <div class="hud rv" data-scramble><b>05</b> Case files</div>
+      <div class="hud rv" data-scramble><b>06</b> Case files</div>
       <h2 class="h2 rv">Attack <span class="serif grad">files</span></h2>
       <p class="lead rv d1"><code>npm run attack-suite</code> against vault-arr.testnet, with Budi's real key. Each card opens its transaction.</p>
       <div class="files" id="fgrid"></div>
@@ -786,7 +855,7 @@
   <section id="questions">
     <div class="wrap qa-grid">
       <div>
-        <div class="hud rv" data-scramble><b>06</b> Objections</div>
+        <div class="hud rv" data-scramble><b>07</b> Objections</div>
         <h2 class="h2 rv"><span class="serif grad">Questions</span></h2>
         <p class="lead rv d1">Short answers about what Trickproof does, and what it doesn't.</p>
         <a class="more rv d2 repo-link" href="#start">Read the README →</a>
@@ -805,7 +874,7 @@
   <!-- ============ GET STARTED ============ -->
   <section id="start">
     <div class="wrap">
-      <div class="hud rv" data-scramble><b>07</b> Run it</div>
+      <div class="hud rv" data-scramble><b>08</b> Run it</div>
       <h2 class="h2 rv">Get <span class="serif grad">started</span></h2>
       <p class="lead rv d1">Five testnet accounts and one setup command. Then try to talk Budi into anything.</p>
       <div class="tiles">
@@ -839,7 +908,7 @@
       </div>
       <div class="f-cols">
         <div><h4>PRODUCT</h4><a href="#preview">Live preview</a><a href="#how">How it works</a><a href="#layers">Layers</a><a href="#start">Get started</a></div>
-        <div><h4>PROOF</h4><a href="#files">Attack files</a><a href="https://testnet.nearblocks.io/address/vault-arr.testnet" target="_blank" rel="noopener">Vault on testnet</a><a href="#zero">0 NEAR lost</a></div>
+        <div><h4>PROOF</h4><a href="#files">Attack files</a><a href="https://testnet.nearblocks.io/address/vault-arr.testnet" target="_blank" rel="noopener">Vault on testnet</a><a href="#zero">0 NEAR lost</a><a href="#live">Live vault state</a></div>
         <div><h4>SOURCES</h4><a href="https://oecd.ai/en/incidents/2026-05-04-4a73" target="_blank" rel="noopener">Grok × Bankrbot</a><a href="https://cryptoticker.io/en/ai-agent-wallets-spending-limit-bypass-study/" target="_blank" rel="noopener">Cornell × Yale study</a><a href="https://app.outlayer.ai/docs/agent-custody" target="_blank" rel="noopener">OutLayer docs</a></div>
         <div><h4>HACKATHON</h4><span>NEAR HACKATHON</span><span>Tracks: security, agents</span><span>MIT License</span></div>
       </div>
@@ -927,6 +996,68 @@ new IntersectionObserver(async ([e], o) => {
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const wait = (ms) => new Promise((r) => setTimeout(r, reduce ? 0 : ms));
+
+  // ---------- live vault state, read-only from NEAR testnet RPC ----------
+  (function liveVault() {
+    const CONTRACT = "vault-arr.testnet";
+    const RPCS = ["https://test.rpc.fastnear.com", "https://rpc.testnet.near.org"];
+    const near = (y, d = 3) => {
+      const v = BigInt(y || 0), one = 10n ** 24n;
+      const f = (v % one).toString().padStart(24, "0").slice(0, d).replace(/0+$/, "");
+      return (v / one).toString() + (f ? "." + f : "");
+    };
+    const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    const ago = (ns) => {
+      const s = Math.max(0, (Date.now() - Number(BigInt(ns) / 1000000n)) / 1000);
+      return s < 60 ? `${Math.floor(s)}s ago` : s < 3600 ? `${Math.floor(s / 60)}m ago` : s < 86400 ? `${Math.floor(s / 3600)}h ago` : `${Math.floor(s / 86400)}d ago`;
+    };
+    async function view(method, args = {}) {
+      let lastErr;
+      for (const url of RPCS) {
+        try {
+          const res = await fetch(url, {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "query", params: { request_type: "call_function", finality: "final", account_id: CONTRACT, method_name: method, args_base64: btoa(JSON.stringify(args)) } }),
+          });
+          const j = await res.json();
+          if (j.error || !j.result?.result) throw new Error(j.error?.message || "no result");
+          return { data: JSON.parse(new TextDecoder().decode(new Uint8Array(j.result.result))), height: j.result.block_height };
+        } catch (e) { lastErr = e; }
+      }
+      throw lastErr;
+    }
+    async function load() {
+      const dot = $("#lv-dot");
+      try {
+        const [pol, logs, held] = await Promise.all([view("get_policy"), view("get_logs", { from: 0, limit: 100 }), view("get_held")]);
+        const p = pol.data;
+        $("#lv-sub").textContent = `read live from NEAR testnet · block #${pol.height.toLocaleString("en")}`;
+        $("#lv-bal").textContent = `${near(p.balance)} NEAR`;
+        $("#lv-tx").textContent = `${near(p.max_per_tx)} NEAR`;
+        $("#lv-day").textContent = `${near(p.max_per_day)} NEAR`;
+        $("#lv-spent").textContent = `${near(p.spent_today)} NEAR`;
+        const max = Number(near(p.max_per_day, 6)) || 1;
+        $("#lv-barf").style.width = `${Math.min(100, (Number(near(p.spent_today, 6)) / max) * 100)}%`;
+        $("#lv-held").textContent = held.data.length;
+        $("#lv-agent").textContent = p.agent; $("#lv-owner").textContent = p.owner; $("#lv-allow").textContent = p.allowed.join(", ") || "—";
+        const rows = logs.data.slice().reverse();
+        $("#lv-log").innerHTML = rows.length ? rows.map((l) => `<div class="lv-row">
+            <span class="n">#${l.id}</span><span class="p ${l.status}">${l.status.toUpperCase()}</span>
+            <span class="d"><b>${near(l.amount)} NEAR</b> → <span class="mono">${esc(l.receiver)}</span><small>${esc(l.reason || l.memo || "")}</small></span>
+            <span class="t">${ago(l.timestamp)}</span></div>`).join("") : `<div class="lv-empty">No decisions recorded yet.</div>`;
+        dot.className = "lv-dot ok";
+      } catch (e) {
+        dot.className = "lv-dot err";
+        $("#lv-sub").textContent = "couldn't reach NEAR testnet RPC right now. Try Refresh, or open NearBlocks.";
+      }
+    }
+    let started = false;
+    new IntersectionObserver(([e]) => { if (e.isIntersecting && !started) { started = true; load(); setInterval(() => document.visibilityState === "visible" && load(), 20000); } }, { rootMargin: "400px" }).observe($("#live"));
+    $("#lv-refresh").addEventListener("click", load);
+    $("#lv-copy").addEventListener("click", async (e) => {
+      try { await navigator.clipboard.writeText($("#lv-cmd").textContent); e.target.textContent = "copied"; setTimeout(() => (e.target.textContent = "copy"), 1300); } catch {}
+    });
+  })();
   const A = (n) => `assets/${n}.svg`;
   const TX = "https://testnet.nearblocks.io/txns/";
 

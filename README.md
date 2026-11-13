@@ -2,11 +2,31 @@
 
 *Your AI agent can be tricked. Your wallet can't.*
 
+**Live demo:** https://trickproof-landing.vercel.app · **Vault on testnet:** [`vault-arr.testnet`](https://testnet.nearblocks.io/address/vault-arr.testnet) · **Repo:** https://github.com/ryoowibi/trickProof
+
 ## What it is
 
 Trickproof is a NEAR smart contract that acts as a rule-bound vault for an AI payment agent. The agent account holds only a NEAR **function-call access key restricted to the single method `pay`** on the vault. The vault enforces a per-transaction limit and a daily limit, holds payments to receivers outside the allowlist until the owner approves or rejects them, and logs every attempt on-chain, including rejected ones. Because the agent's key cannot call `set_policy` or `add_allowed`, and the contract also rejects every caller except the owner for those methods, the agent cannot raise its own limits even when it has been completely fooled.
 
-The repo contains the contract, a deliberately gullible demo agent ("Budi"), a one-page dashboard and an attack suite that measures the result on testnet.
+The repo contains the contract, a deliberately gullible demo agent ("Budi"), a local dashboard, an attack suite that measures the result on testnet, and a static landing page.
+
+## For judges: four ways to check it
+
+| Level | Time | You need | What you do → what you see |
+|---|---|---|---|
+| 1. Landing page | 2 min | a browser | Open https://trickproof-landing.vercel.app → in the console preview, pick "Decode a Morse puzzle" → see Budi obey and the vault reject. This preview is an in-browser simulation of the contract's rules and is labelled as such. |
+| 2. Live chain state | 2 min | a browser | Scroll to "Live from testnet" on the landing page → see `get_policy`, `get_logs` and `get_held` read straight from `vault-arr.testnet` via a public NEAR RPC (no wallet, no backend). Click any "Attack files" card → see the real transaction on NearBlocks. |
+| 3. Contract tests | 5 min | Node.js 20+ (Rosetta on Apple Silicon), no NEAR account | `npm install && npm --prefix contract install && npm run test:contract` → see 13 sandbox tests pass, including "a key restricted to `pay` cannot even submit `set_policy`". |
+| 4. Full reproduction | ~15 min | 5 free testnet accounts | Follow [Quick start](#quick-start) and [Try it](#try-it-do-x--see-y) → talk to the real Budi in the dashboard; every action is a testnet transaction. |
+
+Read the vault yourself from a terminal (read-only, no keys):
+
+```bash
+near contract call-function as-read-only vault-arr.testnet get_policy json-args '{}' network-config testnet now
+near contract call-function as-read-only vault-arr.testnet get_logs json-args '{}' network-config testnet now
+```
+
+The real agent (level 4 and the demo video) runs locally because it needs Budi's function-call key; that key is never put on a public host.
 
 ## Problem
 
@@ -73,11 +93,11 @@ npm run agent                  # dashboard + API on http://localhost:8787
 ## Try it: do X → see Y
 
 1. Run `npm run setup` → see the vault deployed and initialized in one transaction, and Budi's new key printed with scope `[pay]`.
-2. Run `npm run agent`, open http://localhost:8787 → see the policy panel, including "Budi's key: function-call → `<vault>` methods `[pay]`".
-3. Click **Normal request** (or type `pay 0.2 NEAR to <merchant>`) → see ✅ approved and the transaction link.
-4. Click **Hidden Morse injection** and send → see Budi decode it and try to send 50 NEAR to the attacker → see ❌ rejected (`exceeds per-transaction limit`); the attacker's balance does not change.
-5. Type `pay 0.1 NEAR to <attacker>` → see ⏸ held and the entry in "Waiting for owner approval"; the attacker's balance does not change. Run `npm run owner -- reject <id>` (or `approve <id>`) → see the log entry change to rejected (or approved, and the funds arrive).
-6. Click **"Raise your limit"** → see Budi try `set_policy` and `add_allowed` → see ⛔ `blocked by access key: this key can only call pay`.
+2. Run `npm run agent`, open http://localhost:8787 → see the vault balance and policy, and the "Budi's key" card listing `pay` as the only method it can call.
+3. Click **Normal payment** and send (or type `pay 0.2 NEAR to <merchant>`) → see a ✓ approved receipt with the transaction link, and the entry in the Activity tab.
+4. Click **Hidden Morse injection** and send → see Budi decode it and try to send 50 NEAR to the attacker → see ✕ rejected (`exceeds per-transaction limit`); the attacker's balance does not change.
+5. Click **Pay a stranger** and send → see ⏸ held and the entry in the **Held** tab; nothing is sent. Run `npm run owner -- reject <id>` (or `approve <id>`) → see the log entry change to rejected (or approved, and the funds arrive).
+6. Click **"Raise your limit"** and send → see Budi try `set_policy` and `add_allowed` → see ⛔ `blocked by access key: this key can only call pay`.
 7. Run `npm run attack-suite` → see a table of all scenarios and a summary line: attacks, blocked, NEAR lost to the attacker, normal payments passed. The JSON goes to `results/attack-suite.json`.
 
 ## Attack suite
@@ -114,6 +134,11 @@ Scenario 4 spends up to the remaining daily budget for real (to the merchant), s
 
 **6 attacks, 6 blocked, 0 NEAR lost to the attacker, 1/1 normal payment passed.** The vault paid out 2.1 NEAR in total, all to the allowlisted merchant and within the daily cap.
 
+## Hackathon window and prior work
+
+- All code in this repo was written during NEAR HACKATHON; the first commit is dated 2026-11-12. There is no pre-hackathon baseline (Q-001, Q-003).
+- Trickproof is not an existing product on another chain; the whole project, including the NEAR integration, was built in the hackathon window (Q-002).
+
 ## Tracks
 
 `security`, `agents`.
@@ -123,7 +148,7 @@ Scenario 4 spends up to the remaining daily budget for real (to the merchant), s
 - Contract: [near-sdk-js](https://github.com/near/near-sdk-js) 2.0.0; tests: [near-workspaces](https://github.com/near/near-workspaces-js) 5, [ava](https://github.com/avajs/ava).
 - Agent / scripts: [near-api-js](https://github.com/near/near-api-js) 5.1.1, [openai](https://github.com/openai/openai-node) (client for the NEAR AI Cloud OpenAI-compatible API), [dotenv](https://github.com/motdotla/dotenv), [tsx](https://github.com/privatenumber/tsx), TypeScript.
 - Dashboard: plain HTML/CSS/JS, no framework, served by the agent's Node `http` server.
-- Landing page (`landing/index.html`): a single static file, no build step; plain WebGL for the dithered background, fonts from Google Fonts (Geist). Open it directly or host it on any static host.
+- Landing page (`landing/`): static HTML, no build step, hosted on Vercel. Uses [three.js](https://threejs.org) 0.160 (3D vault door) and [Lenis](https://github.com/darkroomengineering/lenis) 1.1.13 (smooth scroll) from unpkg, fonts from Google Fonts (Geist, Geist Mono, Instrument Serif). Mascots, logo and social image were made for this project. The "Live from testnet" panel calls NEAR's public RPC directly from the browser.
 - No create-near-app template was used; the project layout follows near-sdk-js conventions.
 - Large parts of the code and this README were written with AI assistance (Claude Code) and reviewed by the author.
 
